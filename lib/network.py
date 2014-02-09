@@ -4,21 +4,28 @@ from bitcoin import *
 import interface
 from blockchain import Blockchain
 
-DEFAULT_PORTS = {'t':'50001', 's':'50002', 'h':'8081', 'g':'8082'}
+# MMC Changes
+
+#DEFAULT_PORTS = {'t':'50001', 's':'50002', 'h':'8081', 'g':'8082'}
+DEFAULT_PORTS = {'t':'60001', 's':'60002', 'h':'9081', 'g':'9082'} # Yes, just move each one up 1k
+
 
 DEFAULT_SERVERS = {
     #'electrum.coinwallet.me': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.hachre.de': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.novit.ro': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.stepkrav.pw': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.hachre.de': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.novit.ro': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.stepkrav.pw': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
     #'ecdsa.org': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.no-ip.org': {'h': '80', 's': '50002', 't': '50001', 'g': '443'},
-    'electrum.drollette.com': {'h': '5000', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.random.re': {'h': '80', 's': '110', 't': '50001', 'g': '443'},
-    'btc.medoix.com': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.stupidfoot.com': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.no-ip.org': {'h': '80', 's': '50002', 't': '50001', 'g': '443'},
+    #'electrum.drollette.com': {'h': '5000', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.random.re': {'h': '80', 's': '110', 't': '50001', 'g': '443'},
+    #'btc.medoix.com': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
+    #'electrum.stupidfoot.com': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
     #'electrum.pdmc.net': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'},
-    'electrum.be': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'}
+    #'electrum.be': {'h': '8081', 's': '50002', 't': '50001', 'g': '8082'}
+    
+    #'electrum.memorycoin.biz': {'h': '9081', 's': '60002', 't': '60001', 'g': '9082'}
+    'xpool.xram.co': {'h': '9081', 's': '60002', 't': '60001', 'g': '9082'}
 }
 
 

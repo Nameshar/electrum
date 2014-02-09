@@ -60,7 +60,7 @@ hash_encode = lambda x: x[::-1].encode('hex')
 hash_decode = lambda x: x.decode('hex')[::-1]
 
 hmac_sha_512 = lambda x,y: hmac.new(x, y, hashlib.sha512).digest()
-mnemonic_hash = lambda x: hmac_sha_512("Bitcoin mnemonic", x).encode('hex')
+mnemonic_hash = lambda x: hmac_sha_512("Memorycoin mnemonic", x).encode('hex')
 
 # pywallet openssl private key implementation
 
@@ -127,7 +127,8 @@ def public_key_to_bc_address(public_key):
     h160 = hash_160(public_key)
     return hash_160_to_bc_address(h160)
 
-def hash_160_to_bc_address(h160, addrtype = 0):
+# Memorycoin uses addrtype of 50
+def hash_160_to_bc_address(h160, addrtype = 50):
     vh160 = chr(addrtype) + h160
     h = Hash(vh160)
     addr = vh160 + h[0:4]
@@ -216,12 +217,12 @@ def DecodeBase58Check(psz):
 def PrivKeyToSecret(privkey):
     return privkey[9:9+32]
 
-def SecretToASecret(secret, compressed=False, addrtype=0):
+def SecretToASecret(secret, compressed=False, addrtype=50):
     vchIn = chr((addrtype+128)&255) + secret
     if compressed: vchIn += '\01'
     return EncodeBase58Check(vchIn)
 
-def ASecretToSecret(key, addrtype=0):
+def ASecretToSecret(key, addrtype=50):
     vch = DecodeBase58Check(key)
     if vch and vch[0] == chr((addrtype+128)&255):
         return vch[1:]

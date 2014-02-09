@@ -32,7 +32,7 @@ class Blockchain(threading.Thread):
         self.lock = threading.Lock()
         self.local_height = 0
         self.running = False
-        self.headers_url = 'http://headers.electrum.org/blockchain_headers'
+        self.headers_url = 'http://xpool.xram.co/blockchain_headers.bin'
         self.set_local_height()
         self.queue = Queue.Queue()
 
@@ -83,7 +83,7 @@ class Blockchain(threading.Thread):
                 chain = self.get_chain( i, header )
 
                 # skip that server if the result is not consistent
-                if not chain: 
+                if not chain:
                     print_error('e')
                     continue
                 
@@ -113,12 +113,13 @@ class Blockchain(threading.Thread):
             height = header.get('block_height')
 
             prev_hash = self.hash_header(prev_header)
-            bits, target = self.get_target(height/2016, chain)
+            #bits, target = self.get_target(height, chain)
             _hash = self.hash_header(header)
             try:
                 assert prev_hash == header.get('prev_block_hash')
-                assert bits == header.get('bits')
-                assert int('0x'+_hash,16) < target
+                # Disable these checks until targets work
+                #assert bits == header.get('bits')
+                #assert int('0x'+_hash,16) < target
             except Exception:
                 return False
 
@@ -130,21 +131,21 @@ class Blockchain(threading.Thread):
 
     def verify_chunk(self, index, hexdata):
         data = hexdata.decode('hex')
-        height = index*2016
-        num = len(data)/80
+        height = index
+        num = len(data)/88
 
-        if index == 0:  
+        if index == 0:
             previous_hash = ("0"*64)
         else:
-            prev_header = self.read_header(index*2016-1)
+            prev_header = self.read_header(index-1)
             if prev_header is None: raise
             previous_hash = self.hash_header(prev_header)
 
         bits, target = self.get_target(index)
 
         for i in range(num):
-            height = index*2016 + i
-            raw_header = data[i*80:(i+1)*80]
+            height = index + i
+            raw_header = data[i*88:(i+1)*88]
             header = self.header_from_string(raw_header)
             _hash = self.hash_header(header)
             assert previous_hash == header.get('prev_block_hash')
@@ -152,7 +153,7 @@ class Blockchain(threading.Thread):
             assert int('0x'+_hash,16) < target
 
             previous_header = header
-            previous_hash = _hash 
+            previous_hash = _hash
 
         self.save_chunk(index, data)
         print_error("validated chunk %d"%height)
@@ -165,7 +166,9 @@ class Blockchain(threading.Thread):
             + rev_hex(res.get('merkle_root')) \
             + int_to_hex(int(res.get('timestamp')),4) \
             + int_to_hex(int(res.get('bits')),4) \
-            + int_to_hex(int(res.get('nonce')),4)
+            + int_to_hex(int(res.get('nonce')),4) \
+            + int_to_hex(int(res.get('birthdayA')),4) \
+            + int_to_hex(int(res.get('birthdayB')),4)
         return s
 
 
@@ -178,6 +181,8 @@ class Blockchain(threading.Thread):
         h['timestamp'] = hex_to_int(s[68:72])
         h['bits'] = hex_to_int(s[72:76])
         h['nonce'] = hex_to_int(s[76:80])
+        h['birthdayA'] = hex_to_int(s[80:84])
+        h['birthdayB'] = hex_to_int(s[84:88])
         return h
 
     def hash_header(self, header):
@@ -204,18 +209,18 @@ class Blockchain(threading.Thread):
     def save_chunk(self, index, chunk):
         filename = self.path()
         f = open(filename,'rb+')
-        f.seek(index*2016*80)
+        f.seek(index*88)
         h = f.write(chunk)
         f.close()
         self.set_local_height()
 
     def save_header(self, header):
         data = self.header_to_string(header).decode('hex')
-        assert len(data) == 80
+        assert len(data) == 88
         height = header.get('block_height')
         filename = self.path()
         f = open(filename,'rb+')
-        f.seek(height*80)
+        f.seek(height*88)
         h = f.write(data)
         f.close()
         self.set_local_height()
@@ -224,7 +229,7 @@ class Blockchain(threading.Thread):
     def set_local_height(self):
         name = self.path()
         if os.path.exists(name):
-            h = os.path.getsize(name)/80 - 1
+            h = os.path.getsize(name)/88 - 1
             if self.local_height != h:
                 self.local_height = h
 
@@ -233,32 +238,32 @@ class Blockchain(threading.Thread):
         name = self.path()
         if os.path.exists(name):
             f = open(name,'rb')
-            f.seek(block_height*80)
-            h = f.read(80)
+            f.seek(block_height*88)
+            h = f.read(88)
             f.close()
-            if len(h) == 80:
+            if len(h) == 88:
                 h = self.header_from_string(h)
-                return h 
+                return h
 
 
     def get_target(self, index, chain=[]):
 
-        max_target = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
-        if index == 0: return 0x1d00ffff, max_target
+        max_target = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        if index == 0: return 0x2100ffff, max_target
 
-        first = self.read_header((index-1)*2016)
-        last = self.read_header(index*2016-1)
+        first = self.read_header((index-1))
+        last = self.read_header(index-1)
         if last is None:
             for h in chain:
-                if h.get('block_height') == index*2016-1:
+                if h.get('block_height') == index-1:
                     last = h
  
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14*24*60*60
+        nTargetTimespan = 6*60 # 6 Minutes for Memorycoin
         nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
         nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
 
-        bits = last.get('bits') 
+        bits = last.get('bits')
         # convert to bignum
         MM = 256*256*256
         a = bits%MM
@@ -277,7 +282,7 @@ class Blockchain(threading.Thread):
             i -= 1
 
         c = int('0x'+c[0:6],16)
-        if c > 0x800000: 
+        if c > 0x800000:
             c /= 256
             i += 1
 
@@ -297,7 +302,7 @@ class Blockchain(threading.Thread):
                 print_error('timeout')
                 continue
 
-            if not ir: 
+            if not ir:
                 continue
 
             i, r = ir
@@ -354,8 +359,8 @@ class Blockchain(threading.Thread):
     def get_and_verify_chunks(self, i, header, height):
         requested_chunks = []
         queue = Queue.Queue()
-        min_index = (self.local_height + 1)/2016
-        max_index = (height + 1)/2016
+        min_index = (self.local_height + 1)
+        max_index = (height + 1)
 
         for n in range(min_index, max_index + 1):
             i.send([ ('blockchain.block.get_chunk',[n])], lambda i,r:queue.put(r))
@@ -387,10 +392,3 @@ class Blockchain(threading.Thread):
             requested_chunks.remove(index)
 
         return True
-
-
-
-
-
-
-
