@@ -4,10 +4,10 @@ from bitcoin import *
 import interface
 from blockchain import Blockchain
 
-# MMC Changes
+# PTS Changes
 
 #DEFAULT_PORTS = {'t':'50001', 's':'50002', 'h':'8081', 'g':'8082'}
-DEFAULT_PORTS = {'t':'60001', 's':'60002', 'h':'9081', 'g':'9082'} # Yes, just move each one up 1k
+DEFAULT_PORTS = {'t':'70001', 's':'70002', 'h':'7081', 'g':'7082'} # Yes, just move each one and down up 1k
 
 
 DEFAULT_SERVERS = {

@@ -150,7 +150,7 @@ class Blockchain(threading.Thread):
             _hash = self.hash_header(header)
             assert previous_hash == header.get('prev_block_hash')
             #assert bits == header.get('bits')
-            #assert int('0x'+_hash,16) < target # Cant do bits for memorycoin yet
+            #assert int('0x'+_hash,16) < target # Cant do bits for PTS yet
 
             previous_header = header
             previous_hash = _hash
@@ -249,7 +249,7 @@ class Blockchain(threading.Thread):
     def get_target(self, index, chain=[]):
 
         max_target = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        if index == 0: return 0x2100ffff, max_target
+        if index == 0: return 0x20000FFF, max_target
 
         first = self.read_header((index-1))
         last = self.read_header(index-1)
@@ -259,7 +259,7 @@ class Blockchain(threading.Thread):
                     last = h
  
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 6*60 # 6 Minutes for Memorycoin
+        nTargetTimespan = 5*60 # 6 Minutes for Protoshares
         nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
         nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
 
